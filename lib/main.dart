@@ -1,7 +1,26 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:shop_now/Models/Productlist.dart';
+import 'package:provider/provider.dart';
+import 'package:shop_now/UI%20Helper/Customcolor.dart';
+import 'package:shop_now/Views/Bottomnav.dart';
+import 'package:shop_now/Views/Dashboard.dart';
+import 'package:shop_now/Views/FavouriteScreen.dart';
+import 'package:shop_now/Views/Furniture.dart';
+import 'package:shop_now/Views/Loginscreen.dart';
+import 'package:shop_now/Views/MobileProduct.dart';
+import 'package:shop_now/Views/SignupScreen.dart';
+import 'package:shop_now/Views/SplashScreen.dart';
+import 'package:shop_now/Views/Wallet.dart';
+import 'package:shop_now/Views/femalproduct.dart';
+import 'package:shop_now/Views/onboardingScreen.dart';
+import 'package:shop_now/providers/cartprovider.dart';
+import 'package:shop_now/providers/themeProvider.dart';
 
-void main() {
+import 'Views/homeAppliances.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -10,59 +29,43 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: ListView.builder(
-          itemCount: ProdustListing.phoneList.length,
-          itemBuilder: (BuildContext context, index) {
-            final data = ProdustListing.phoneList[index];
-            return Column(
-              children: [
-                Text(ProdustListing.phoneList[index].title.toString()),
-                Container(
-                    height: 100,
-                    width: 100,
-                    child: Image(
-                        fit: BoxFit.cover, image: AssetImage(data.imageUrl2!))),
-              ],
-            );
-          },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => CartProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(),
+        ),
+      ],
+      child: Builder(
+        builder: (context) {
+          final themeProvider = Provider.of<ThemeProvider>(context);
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: "Shopping's Delight",
+            theme: themeProvider.isDarkMode
+                ? ThemeData(brightness: Brightness.dark)
+                : ThemeData(
+                    brightness: Brightness.light,
+                    primarySwatch: appcolor,
+                  ),
+            routes: {
+              '/': (context) => Splash(),
+              '/login': (context) => LoginScreen(),
+              '/signup': (context) => SignupScreen(),
+              '/dashboard': (context) => Dashboard(),
+              '/favourite': (context) => FavouriteScreen(),
+              '/wallet': (context) => WalletScreen(),
+              '/bottomnav': (context) => Bottomnav(),
+              '/phones': (context) => PhoneCollections(),
+              '/onboard': (context) => OnboardingScreen(),
+              '/female': (context) => WomensPoduct(),
+              '/furniture': (context) => Furniture(),
+              '/appliances': (context) => HomeAppliances(),
+            },
+          );
+        },
       ),
     );
   }

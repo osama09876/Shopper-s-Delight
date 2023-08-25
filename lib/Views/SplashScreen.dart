@@ -1,7 +1,11 @@
-// import 'dart:async';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
+import 'package:shop_now/UI%20Helper/Customcolor.dart';
+import 'package:shop_now/Views/Bottomnav.dart';
+import 'package:shop_now/Views/Loginscreen.dart';
+
+import '../providers/themeProvider.dart';
 
 class Splash extends StatefulWidget {
   const Splash({Key? key}) : super(key: key);
@@ -10,37 +14,71 @@ class Splash extends StatefulWidget {
   State<Splash> createState() => _SplashState();
 }
 
-class _SplashState extends State<Splash> {
+class _SplashState extends State<Splash> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // Timer(Duration(minutes: 3), () {
-    //   Navigator.pushReplacementNamed(context, '/getstarted');
-    // });
+    _toHomeScreen();
   }
+
+  Route _createRoute() {
+    final auth = FirebaseAuth.instance;
+    final user = auth.currentUser;
+    return PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            user != null ? Bottomnav() : LoginScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          var begin = const Offset(0.0, 1.0);
+          var end = Offset.zero;
+          var curve = Curves.ease;
+
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        });
+  }
+
+  void _toHomeScreen() async {
+    Future.delayed(const Duration(seconds: 4), () {
+      Navigator.of(context).pushReplacement(_createRoute());
+    });
+  }
+
+  late final AnimationController _controller = AnimationController(
+    duration: const Duration(milliseconds: 4000),
+    vsync: this,
+  )..repeat(reverse: false);
+  late final Animation<double> _animation = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeIn,
+  );
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
+      backgroundColor:
+          themeProvider.isDarkMode ? Colors.transparent : whitecolor,
       body: Center(
         child: Container(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Lottie.network(
-                  'https://assets9.lottiefiles.com/packages/lf20_q6wsiidu.json'),
-              SizedBox(
-                height: 15,
-              ),
-              Text(
-                'Shopper’S Delight',
-                style: TextStyle(fontSize: 25),
-              )
-            ],
-          ),
+          child: FadeTransition(
+              opacity: _animation,
+              child: Image.asset(
+                'assets/images/appLogo.png',
+                // height: 20.h,
+              )),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
